@@ -1,4 +1,4 @@
 import pygame, math
 
-SURFACE_SIZE = (640, 480)
-WINDOW_SIZE = (1280, 960)
+SURFACE_SIZE = (960, 540)
+WINDOW_SIZE = (960, 540)

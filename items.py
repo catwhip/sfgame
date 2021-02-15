@@ -1,28 +1,43 @@
 from constants import *
 
 class Item():
-	def __init__(self, name, image, size, level):
+	def __init__(self, name, image, level, stats, cost):
 		self.name = name
-		self.size = size
 		self.level = level
+		self.stats = stats
+		self.cost = cost
 
 		self.image = pygame.image.load(image)
 	
-	def draw(self, surface, pos):
-		surface.blit(pygame.transform.scale(self.image, self.size), pos)
+	def draw(self, surface, pos, size):
+		surface.blit(pygame.transform.scale(self.image, size), pos)
 	
 FURNITURE = (
-	Item("bookcase", "./assets/furniture1.png", (32, 32), 1),
-	Item("rug", "./assets/furniture21.png", (32, 32), 0),
+	Item(
+		"bookcase", # name
+		"./assets/furniture1.png", # image
+		1, # level (1 = not passable)
+		{"comfort": 2, "entertainment": 10,}, # stat points
+		150, # cost
+	),
+
+	Item(
+		"rug",
+		"./assets/furniture21.png",
+		0,
+		{"comfort": 10,},
+		80,
+	),
 )
 
 class ItemMenu:
 	visible = False
-	margin  = 4
 	select  = 0
 
-	def __init__(self):
-		self.font = pygame.font.Font("./assets/geopixel.ttf", 5)
+	def __init__(self, cMap):
+		self.size = (cMap.tileSize * 4, cMap.tileSize * 4)
+		self.margin = int(cMap.tileSize / 8)
+		self.font = pygame.font.Font("./assets/geopixel.ttf", 10)
 		self.text = []
 	
 	def update(self, eventList):
@@ -52,7 +67,7 @@ class ItemMenu:
 		return -1
 
 	def draw(self, surface):
-		pygame.draw.rect(surface, (19, 126, 166), pygame.Rect(self.margin, self.margin, 128 - (self.margin * 2), 128 - (self.margin * 2)), 0, 4)
+		pygame.draw.rect(surface, (19, 126, 166), pygame.Rect(self.margin, self.margin, self.size[0] - (self.margin * 2), self.size[1] - (self.margin * 2)), 0, self.margin)
 
 		for x in range(0, len(self.text)):
 			surface.blit(self.text[x], (self.margin * 2, (self.margin * 2) + sum(f.get_rect().h + (self.margin / 2) for f in self.text[:x])))

@@ -6,11 +6,16 @@ from items import *
 clock = pygame.time.Clock()
 
 class Map():
+	cost = 0
 	# y goes first, x goes second
 	
-	def __init__(self, size):
+	def __init__(self, size, tileSize):
 		self.grid = []
 		self.size = size
+		self.tileSize = tileSize
+		self.surface = pygame.surface.Surface((self.size[0] * self.tileSize, self.size[1] * self.tileSize))
+
+		self.stats = {}
 
 		for y in range(0, size[0]):
 			self.grid.append([])
@@ -22,11 +27,68 @@ class Map():
 		for y in self.grid:
 			for x in y:
 				x = 0
+	
+	def update(self):
+		for s in self.stats:
+			self.stats[s] = 0
+			self.cost = 0
+		
+		for y in self.grid:
+			for x in y:
+				if x > 0:
+					for z in FURNITURE[x - 1].stats:
+						if z not in self.stats:
+							self.stats[z] = FURNITURE[x - 1].stats[z]
+						else:
+							self.stats[z] += FURNITURE[x - 1].stats[z]
+
+					self.cost += FURNITURE[x - 1].cost
+
+class UI:
+	def __init__(self):
+		self.font = pygame.font.Font("./assets/geopixel.ttf", 10)
+
+		self.tutorial = [
+			self.font.render("arrow keys - move", False, (255, 255, 255)),
+			self.font.render("c - item menu", False, (255, 255, 255)),
+			self.font.render("x - remove item", False, (255, 255, 255)),
+			self.font.render("m - mute", False, (255, 255, 255)),
+			self.font.render(" ", False, (255, 255, 255)),
+			self.font.render(" ", False, (255, 255, 255)),
+			self.font.render("sfgame v0.0.1 - 15/02/21 build", False, (255, 255, 255)),
+		]
+
+		self.props = {}
+	
+	def update(self, cMap):
+		for s in cMap.stats:
+			self.props[s] = self.font.render(f"{s}: {cMap.stats[s]}", False, (177, 156, 217))
+		
+		self.props["cost"] = self.font.render(f"cost: {cMap.cost}", False, (119, 221, 119))
+	
+	def draw(self, surface, cMap):
+		if self.props:
+			pSurface = pygame.surface.Surface((max(self.props[x].get_rect().w for x in self.props), sum(self.props[y].get_rect().h + 3 for y in self.props) - 3))
+		else:
+			pSurface = pygame.surface.Surface((0, 0))
+
+		tSurface = pygame.surface.Surface((max(x.get_rect().w for x in self.tutorial), sum(y.get_rect().h + 3 for y in self.tutorial) - 3))
+		
+		for t in range(0, len(self.tutorial)):
+		 	y = sum(x.get_rect().h + 3 for x in self.tutorial[:t])
+		 	tSurface.blit(self.tutorial[t], ((tSurface.get_width() / 2) - (self.tutorial[t].get_rect().w / 2), y - 3))
+		
+		counter = 0
+		for t in self.props:
+			y = sum(x.get_rect().h + 3 for x in [self.props[y] for y in self.props][:counter]) #self.tutorial[:t]
+			pSurface.blit(self.props[t], ((pSurface.get_width() / 2) - (self.props[t].get_rect().w / 2), y))
+			counter += 1
+		
+		surface.blit(tSurface, ((((SURFACE_SIZE[0] / 2) - (cMap.size[0] * (cMap.tileSize / 2))) / 2) - (tSurface.get_width() / 2), (SURFACE_SIZE[1] / 2) - (tSurface.get_height() / 2)))
+		surface.blit(pSurface, (SURFACE_SIZE[0] - ((((SURFACE_SIZE[0] / 2) - (cMap.size[0] * (cMap.tileSize / 2))) / 2)) - (pSurface.get_width() / 2), (SURFACE_SIZE[1] / 2) - (pSurface.get_height() / 2)))
 
 class Guy:
-	speed = 2
 	anims = {}
-	size  = (32, 32)
 	pos   = [1, 1]
 	move  = [0, 0]
 
@@ -35,32 +97,36 @@ class Guy:
 	animFrames = 4
 	animLength = 8
 
-	def __init__(self):
-		self.anims["up"] = pygame.image.load("./assets/Character_Up.png")
-		self.anims["down"] = pygame.image.load("./assets/Character_Down.png")
-		self.anims["left"] = pygame.image.load("./assets/Character_Left.png")
-		self.anims["right"] = pygame.image.load("./assets/Character_Right.png")
+	def __init__(self, cMap):
+		self.size = (cMap.tileSize, cMap.tileSize)
+		self.speed = int(cMap.tileSize / 16)
+
+		self.anims["up"] = pygame.transform.scale(pygame.image.load("./assets/Character_Up.png"), (self.size[0] * self.animFrames, self.size[1]))
+		self.anims["down"] = pygame.transform.scale(pygame.image.load("./assets/Character_Down.png"), (self.size[0] * self.animFrames, self.size[1]))
+		self.anims["left"] = pygame.transform.scale(pygame.image.load("./assets/Character_Left.png"), (self.size[0] * self.animFrames, self.size[1]))
+		self.anims["right"] = pygame.transform.scale(pygame.image.load("./assets/Character_Right.png"), (self.size[0] * self.animFrames, self.size[1]))
 
 		self.animRect = pygame.Rect(0, 0, self.size[0], self.size[1])
 
-		self.menu = ItemMenu()
+		self.menu = ItemMenu(cMap)
 
 	def update(self, eventList, cMap):
-		if not self.menu.visible:
-			keys = pygame.key.get_pressed()
+		keys = pygame.key.get_pressed()
 
-			self.animTimer += 1
+		self.animTimer += 1
 
-			if not self.move == [0, 0]:
-				if self.move[1] > 0:
-					self.move[1] -= self.speed
-				if self.move[1] < 0:
-					self.move[1] += self.speed
-				if self.move[0] > 0:
-					self.move[0] -= self.speed
-				if self.move[0] < 0:
-					self.move[0] += self.speed
-			else:
+		if not self.move == [0, 0]:
+			if self.move[1] > 0:
+				self.move[1] -= self.speed
+			if self.move[1] < 0:
+				self.move[1] += self.speed
+			if self.move[0] > 0:
+				self.move[0] -= self.speed
+			if self.move[0] < 0:
+				self.move[0] += self.speed
+		
+		if self.move == [0, 0] and not self.menu.visible:
+			if not self.menu.visible:
 				if keys[pygame.K_UP]:
 					self.direction = "up"
 					if not (self.pos[1] == 0):
@@ -103,7 +169,28 @@ class Guy:
 								self.move[0] -= self.size[1]
 				else:
 					self.animTimer = 0
+		
+		if self.menu.visible:
+			response = self.menu.update(eventList)
 
+			if self.move == [0, 0]:
+				self.animTimer = 0
+
+			if response > -1:
+				self.menu.visible = False
+				if self.direction == "up":
+					if not (self.pos[1] == 0):
+						cMap.grid[self.pos[0]][self.pos[1] - 1] = self.menu.select + 1
+				elif self.direction == "down":
+					if not (self.pos[1] == cMap.size[1] - 1):
+						cMap.grid[self.pos[0]][self.pos[1] + 1] = self.menu.select + 1
+				elif self.direction == "left":
+					if not (self.pos[0] == 0):
+						cMap.grid[self.pos[0] - 1][self.pos[1]] = self.menu.select + 1
+				elif self.direction == "right":
+					if not (self.pos[0] == cMap.size[0] - 1):
+						cMap.grid[self.pos[0] + 1][self.pos[1]] = self.menu.select + 1
+		else:
 			for event in eventList:
 				if event.type == pygame.KEYDOWN:
 					if event.key == pygame.K_c:
@@ -122,30 +209,13 @@ class Guy:
 						elif self.direction == "right":
 							if not (self.pos[0] == cMap.size[0] - 1):
 								cMap.grid[self.pos[0] + 1][self.pos[1]] = 0
-			
-			if int(self.animTimer / self.animLength) >= self.animFrames:
-				self.animTimer = 0
-			self.animRect.x = int(self.animTimer / self.animLength) * self.size[0]
-		else:
-			response = self.menu.update(eventList)
-
-			if response > -1:
-				self.menu.visible = False
-				if self.direction == "up":
-					if not (self.pos[1] == 0):
-						cMap.grid[self.pos[0]][self.pos[1] - 1] = self.menu.select + 1
-				elif self.direction == "down":
-					if not (self.pos[1] == cMap.size[1] - 1):
-						cMap.grid[self.pos[0]][self.pos[1] + 1] = self.menu.select + 1
-				elif self.direction == "left":
-					if not (self.pos[0] == 0):
-						cMap.grid[self.pos[0] - 1][self.pos[1]] = self.menu.select + 1
-				elif self.direction == "right":
-					if not (self.pos[0] == cMap.size[0] - 1):
-						cMap.grid[self.pos[0] + 1][self.pos[1]] = self.menu.select + 1
+		
+		if int(self.animTimer / self.animLength) >= self.animFrames:
+			self.animTimer = 0
+		self.animRect.x = int(self.animTimer / self.animLength) * self.size[0]
 
 	def draw(self, surface):
-		surface.blit(self.anims[self.direction], [(self.pos[a] * 32) + self.move[a] for a in range(0, len(self.pos))], self.animRect)
+		surface.blit(self.anims[self.direction], [(self.pos[a] * self.size[0]) + self.move[a] for a in range(0, len(self.pos))], self.animRect)
 		if self.menu.visible:
 			self.menu.draw(surface)
 
@@ -153,7 +223,7 @@ class Game:
 	surface = pygame.surface.Surface(SURFACE_SIZE)
 	window  = pygame.display.set_mode(WINDOW_SIZE)
 	active  = True
-	muted   = False
+	muted   = True
 
 	pygame.display.set_caption("sfgame")
 
@@ -161,22 +231,16 @@ class Game:
 		pygame.mixer.pre_init(44100, 16, 2, 4096)
 		pygame.init()
 
-		self.guy = Guy()
-		self.cMap = Map((8, 8))
-		self.bg = pygame.transform.scale(pygame.image.load("./assets/floor_1.png"), (32, 32))
-
-		self.font = pygame.font.Font("./assets/geopixel.ttf", 5)
-		self.tutorial = [
-			self.font.render("arrow keys - move", False, (255, 255, 255)),
-			self.font.render("c - item menu", False, (255, 255, 255)),
-			self.font.render("x - remove item (or select item in menu)", False, (255, 255, 255)),
-			self.font.render("m - mute", False, (255, 255, 255)),
-			self.font.render("sfgame v0.0.1 - valentine's day build", False, (255, 255, 255)),
-		]
+		self.cMap = Map((8, 8), 48)
+		self.guy = Guy(self.cMap)
+		self.bg = pygame.transform.scale(pygame.image.load("./assets/floor_1.png"), (self.cMap.tileSize, self.cMap.tileSize))
+		self.ui = UI()
 
 		pygame.mixer.music.load("./assets/music/zero.mp3")
 		pygame.mixer.music.set_volume(1)
 		pygame.mixer.music.play(-1)
+
+		pygame.mixer.music.pause()
 	
 	def __del__(self):
 		pygame.quit()
@@ -201,31 +265,24 @@ class Game:
 					self.muted = not self.muted
 		
 		self.guy.update(eventList, self.cMap)
+		self.cMap.update()
+		self.ui.update(self.cMap)
+
+		print(self.cMap.stats)
 	
 	def draw(self):
 		self.surface.fill((0, 0, 0))
-
-		""" pygame.draw.rect(self.surface, (44, 44, 44), pygame.rect.Rect(0, 0, self.cMap.size[0] * 32, self.cMap.size[1] * 32))
-		for x in range(0, self.cMap.size[0]):
-			pygame.draw.rect(self.surface, (88, 88, 88), pygame.rect.Rect((x * 32) + 32, 0, 1, self.cMap.size[1] * 32))
-		for y in range(0, self.cMap.size[1]):
-			pygame.draw.rect(self.surface, (88, 88, 88), pygame.rect.Rect(0, (y * 32) + 32, self.cMap.size[0] * 32, 1)) """
+		self.ui.draw(self.surface, self.cMap)
 		
 		for x in range(0, self.cMap.size[0]):
 			for y in range(0, self.cMap.size[1]):
-				self.surface.blit(self.bg, (x * 32, y * 32))
+				self.cMap.surface.blit(self.bg, (x * self.cMap.tileSize, y * self.cMap.tileSize))
 				if not self.cMap.grid[x][y] == 0:
-					FURNITURE[self.cMap.grid[x][y] - 1].draw(self.surface, (x * 32, y * 32))
+					FURNITURE[self.cMap.grid[x][y] - 1].draw(self.cMap.surface, (x * self.cMap.tileSize, y * self.cMap.tileSize), (self.cMap.tileSize, self.cMap.tileSize))
 		
-		self.guy.draw(self.surface)
+		self.guy.draw(self.cMap.surface)
 
-		for t in range(0, len(self.tutorial)):
-			if t == 0:
-				y = 0
-			else:
-				y = sum(x.get_rect().h + 3 for x in self.tutorial[:t])
-			self.surface.blit(self.tutorial[t], ((self.cMap.size[0] * 32) + 6, y + 6))
-
+		self.surface.blit(self.cMap.surface, ((SURFACE_SIZE[0] / 2) - (self.cMap.size[0] * (self.cMap.tileSize / 2)), (SURFACE_SIZE[1] / 2) - (self.cMap.size[1] * (self.cMap.tileSize / 2))))
 		self.window.blit(pygame.transform.scale(self.surface, WINDOW_SIZE), (0, 0))
 		pygame.display.flip()
 	
