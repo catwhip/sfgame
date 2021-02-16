@@ -236,25 +236,49 @@ class Guy:
 							if cMap.grid[self.pos[0]][self.pos[1] - 1] > 0:
 								self.cash += FURNITURE[cMap.grid[self.pos[0]][self.pos[1] - 1] - 1].cost
 							cMap.grid[self.pos[0]][self.pos[1] - 1] = self.menu.select + 1
+							
+							self.cash -= FURNITURE[response].cost
+							self.menu.visible = False
+							self.sfxChannel.play(self.sfx["click"])
+						else:
+							if not self.sfxChannel.get_busy():
+								self.sfxChannel.play(self.sfx["wrong"])
 					elif self.direction == "down":
 						if not (self.pos[1] == cMap.size[1] - 1):
 							if cMap.grid[self.pos[0]][self.pos[1] + 1] > 0:
 								self.cash += FURNITURE[cMap.grid[self.pos[0]][self.pos[1] + 1] - 1].cost
 							cMap.grid[self.pos[0]][self.pos[1] + 1] = self.menu.select + 1
+
+							self.cash -= FURNITURE[response].cost
+							self.menu.visible = False
+							self.sfxChannel.play(self.sfx["click"])
+						else:
+							if not self.sfxChannel.get_busy():
+								self.sfxChannel.play(self.sfx["wrong"])
 					elif self.direction == "left":
 						if not (self.pos[0] == 0):
 							if cMap.grid[self.pos[0] - 1][self.pos[1]] > 0:
 								self.cash += FURNITURE[cMap.grid[self.pos[0] - 1][self.pos[1]] - 1].cost
 							cMap.grid[self.pos[0] - 1][self.pos[1]] = self.menu.select + 1
+
+							self.cash -= FURNITURE[response].cost
+							self.menu.visible = False
+							self.sfxChannel.play(self.sfx["click"])
+						else:
+							if not self.sfxChannel.get_busy():
+								self.sfxChannel.play(self.sfx["wrong"])
 					elif self.direction == "right":
 						if not (self.pos[0] == cMap.size[0] - 1):
 							if cMap.grid[self.pos[0] + 1][self.pos[1]] > 0:
 								self.cash += FURNITURE[cMap.grid[self.pos[0] + 1][self.pos[1]] - 1].cost
 							cMap.grid[self.pos[0] + 1][self.pos[1]] = self.menu.select + 1
-					
-					self.cash -= FURNITURE[response].cost
-					self.menu.visible = False
-					self.sfxChannel.play(self.sfx["click"])
+
+							self.cash -= FURNITURE[response].cost
+							self.menu.visible = False
+							self.sfxChannel.play(self.sfx["click"])
+						else:
+							if not self.sfxChannel.get_busy():
+								self.sfxChannel.play(self.sfx["wrong"])
 				else:
 					if not self.sfxChannel.get_busy():
 						self.sfxChannel.play(self.sfx["wrong"])
