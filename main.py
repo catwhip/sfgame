@@ -46,7 +46,7 @@ class Map():
 
 class UI:
 	def __init__(self):
-		self.font = pygame.font.Font("./assets/geopixel.ttf", 10)
+		self.font = pygame.font.Font("./assets/fonts/geopixel.ttf", 10)
 
 		self.tutorial = []
 		self.props = {}
@@ -64,6 +64,7 @@ class UI:
 		]
 
 		if guy.menu.visible:
+			# do xbox icon stuff here
 			self.tutorial.append(self.font.render("arrow keys - select", False, (255, 255, 255)))
 			self.tutorial.append(self.font.render("c - close menu", False, (255, 255, 255)))
 			if FURNITURE[guy.menu.select].cost <= guy.cash:
@@ -126,10 +127,10 @@ class Guy:
 		self.size = (cMap.tileSize, cMap.tileSize)
 		self.speed = int(cMap.tileSize / 16)
 
-		self.anims["up"] = pygame.transform.scale(pygame.image.load("./assets/Character_Up.png"), (self.size[0] * self.animFrames, self.size[1]))
-		self.anims["down"] = pygame.transform.scale(pygame.image.load("./assets/Character_Down.png"), (self.size[0] * self.animFrames, self.size[1]))
-		self.anims["left"] = pygame.transform.scale(pygame.image.load("./assets/Character_Left.png"), (self.size[0] * self.animFrames, self.size[1]))
-		self.anims["right"] = pygame.transform.scale(pygame.image.load("./assets/Character_Right.png"), (self.size[0] * self.animFrames, self.size[1]))
+		self.anims["up"] = pygame.transform.scale(pygame.image.load("./assets/sprites/guy/up.png"), (self.size[0] * self.animFrames, self.size[1]))
+		self.anims["down"] = pygame.transform.scale(pygame.image.load("./assets/sprites/guy/down.png"), (self.size[0] * self.animFrames, self.size[1]))
+		self.anims["left"] = pygame.transform.scale(pygame.image.load("./assets/sprites/guy/left.png"), (self.size[0] * self.animFrames, self.size[1]))
+		self.anims["right"] = pygame.transform.scale(pygame.image.load("./assets/sprites/guy/right.png"), (self.size[0] * self.animFrames, self.size[1]))
 		self.animRect = pygame.Rect(0, 0, self.size[0], self.size[1])
 
 		self.sfx = {
@@ -141,6 +142,69 @@ class Guy:
 
 		self.menu = ItemMenu(cMap)
 
+	def _move(self, direction, cMap):
+		self.direction = direction
+
+		if self.direction == "up":
+			if not (self.pos[1] == 0):
+				if (cMap.grid[self.pos[0]][self.pos[1] - 1] == 0):
+					self.pos[1] -= 1
+					self.move[1] += self.size[1]
+					self.sfx["step"].play()
+				else:
+					if (FURNITURE[cMap.grid[self.pos[0]][self.pos[1] - 1] - 1].level == 0):
+						self.pos[1] -= 1
+						self.move[1] += self.size[1]
+						self.sfx["step"].play()
+					else:
+						if not self.sfxChannel.get_busy():
+							self.sfxChannel.play(self.sfx["wrong"])
+		
+		elif self.direction == "down":
+			if not (self.pos[1] == cMap.size[1] - 1):
+				if (cMap.grid[self.pos[0]][self.pos[1] + 1] == 0):
+					self.pos[1] += 1
+					self.move[1] -= self.size[1]
+					self.sfx["step"].play()
+				else:
+					if (FURNITURE[cMap.grid[self.pos[0]][self.pos[1] + 1] - 1].level == 0):
+						self.pos[1] += 1
+						self.move[1] -= self.size[1]
+						self.sfx["step"].play()
+					else:
+						if not self.sfxChannel.get_busy():
+							self.sfxChannel.play(self.sfx["wrong"])
+		
+		elif self.direction == "left":
+			if not (self.pos[0] == 0):
+				if (cMap.grid[self.pos[0] - 1][self.pos[1]] == 0):
+					self.pos[0] -= 1
+					self.move[0] += self.size[1]
+					self.sfx["step"].play()
+				else:
+					if (FURNITURE[cMap.grid[self.pos[0] - 1][self.pos[1]] - 1].level == 0):
+						self.pos[0] -= 1
+						self.move[0] += self.size[1]
+						self.sfx["step"].play()
+					else:
+						if not self.sfxChannel.get_busy():
+							self.sfxChannel.play(self.sfx["wrong"])
+		
+		elif self.direction == "right":
+			if not (self.pos[0] == cMap.size[0] - 1):
+				if (cMap.grid[self.pos[0] + 1][self.pos[1]] == 0):
+					self.pos[0] += 1
+					self.move[0] -= self.size[1]
+					self.sfx["step"].play()
+				else:
+					if (FURNITURE[cMap.grid[self.pos[0] + 1][self.pos[1]] - 1].level == 0):
+						self.pos[0] += 1
+						self.move[0] -= self.size[1]
+						self.sfx["step"].play()
+					else:
+						if not self.sfxChannel.get_busy():
+							self.sfxChannel.play(self.sfx["wrong"])
+	
 	def update(self, eventList, cMap):
 		keys = pygame.key.get_pressed()
 
@@ -161,67 +225,34 @@ class Guy:
 
 			if not self.menu.visible:
 				if keys[pygame.K_UP]:
-					self.direction = "up"
-					if not (self.pos[1] == 0):
-						if (cMap.grid[self.pos[0]][self.pos[1] - 1] == 0):
-							self.pos[1] -= 1
-							self.move[1] += self.size[1]
-							self.sfx["step"].play()
-						else:
-							if (FURNITURE[cMap.grid[self.pos[0]][self.pos[1] - 1] - 1].level == 0):
-								self.pos[1] -= 1
-								self.move[1] += self.size[1]
-								self.sfx["step"].play()
-							else:
-								if not self.sfxChannel.get_busy():
-									self.sfxChannel.play(self.sfx["wrong"])
+					self._move("up", cMap)
 				elif keys[pygame.K_DOWN]:
-					self.direction = "down"
-					if not (self.pos[1] == cMap.size[1] - 1):
-						if (cMap.grid[self.pos[0]][self.pos[1] + 1] == 0):
-							self.pos[1] += 1
-							self.move[1] -= self.size[1]
-							self.sfx["step"].play()
-						else:
-							if (FURNITURE[cMap.grid[self.pos[0]][self.pos[1] + 1] - 1].level == 0):
-								self.pos[1] += 1
-								self.move[1] -= self.size[1]
-								self.sfx["step"].play()
-							else:
-								if not self.sfxChannel.get_busy():
-									self.sfxChannel.play(self.sfx["wrong"])
+					self._move("down", cMap)
 				elif keys[pygame.K_LEFT]:
-					self.direction = "left"
-					if not (self.pos[0] == 0):
-						if (cMap.grid[self.pos[0] - 1][self.pos[1]] == 0):
-							self.pos[0] -= 1
-							self.move[0] += self.size[1]
-							self.sfx["step"].play()
-						else:
-							if (FURNITURE[cMap.grid[self.pos[0] - 1][self.pos[1]] - 1].level == 0):
-								self.pos[0] -= 1
-								self.move[0] += self.size[1]
-								self.sfx["step"].play()
-							else:
-								if not self.sfxChannel.get_busy():
-									self.sfxChannel.play(self.sfx["wrong"])
+					self._move("left", cMap)
 				elif keys[pygame.K_RIGHT]:
-					self.direction = "right"
-					if not (self.pos[0] == cMap.size[0] - 1):
-						if (cMap.grid[self.pos[0] + 1][self.pos[1]] == 0):
-							self.pos[0] += 1
-							self.move[0] -= self.size[1]
-							self.sfx["step"].play()
-						else:
-							if (FURNITURE[cMap.grid[self.pos[0] + 1][self.pos[1]] - 1].level == 0):
-								self.pos[0] += 1
-								self.move[0] -= self.size[1]
-								self.sfx["step"].play()
-							else:
-								if not self.sfxChannel.get_busy():
-									self.sfxChannel.play(self.sfx["wrong"])
+					self._move("right", cMap)
 				else:
-					self.animTimer = 0
+					if joysticks:
+						if joysticks[-1].get_axis(1) < -0.9:
+							self._move("up", cMap)
+						elif joysticks[-1].get_axis(1) > 0.9:
+							self._move("down", cMap)
+						elif joysticks[-1].get_axis(0) < -0.9:
+							self._move("left", cMap)
+						elif joysticks[-1].get_axis(0) > 0.9:
+							self._move("right", cMap)
+						else:
+							self.animTimer = 0
+
+							if joysticks[-1].get_axis(3) < -0.9:
+								self.direction = "up"
+							elif joysticks[-1].get_axis(3) > 0.9:
+								self.direction = "down"
+							elif joysticks[-1].get_axis(2) < -0.9:
+								self.direction = "left"
+							elif joysticks[-1].get_axis(2) > 0.9:
+								self.direction = "right"
 		
 		if self.menu.visible:
 			response = self.menu.update(eventList)
@@ -318,6 +349,40 @@ class Guy:
 						
 					if event.key == pygame.K_v:
 						self.cash += 1000
+				
+				if event.type == pygame.JOYBUTTONDOWN:
+					if event.button == 0:
+						self.menu.visible = not self.menu.visible
+						self.sfxChannel.play(self.sfx["click"])
+					
+					if event.button == 2:
+						if self.direction == "up":
+							if not (self.pos[1] == 0):
+								if cMap.grid[self.pos[0]][self.pos[1] - 1] > 0:
+									self.cash += FURNITURE[cMap.grid[self.pos[0]][self.pos[1] - 1] - 1].cost
+									cMap.grid[self.pos[0]][self.pos[1] - 1] = 0
+									self.sfxChannel.play(self.sfx["click"])
+						elif self.direction == "down":
+							if not (self.pos[1] == cMap.size[1] - 1):
+								if cMap.grid[self.pos[0]][self.pos[1] + 1] > 0:
+									self.cash += FURNITURE[cMap.grid[self.pos[0]][self.pos[1] + 1] - 1].cost
+									cMap.grid[self.pos[0]][self.pos[1] + 1] = 0
+									self.sfxChannel.play(self.sfx["click"])
+						elif self.direction == "left":
+							if not (self.pos[0] == 0):
+								if cMap.grid[self.pos[0] - 1][self.pos[1]] > 0:
+									self.cash += FURNITURE[cMap.grid[self.pos[0] - 1][self.pos[1]] - 1].cost
+									cMap.grid[self.pos[0] - 1][self.pos[1]] = 0
+									self.sfxChannel.play(self.sfx["click"])
+						elif self.direction == "right":
+							if not (self.pos[0] == cMap.size[0] - 1):
+								if cMap.grid[self.pos[0] + 1][self.pos[1]] > 0:
+									self.cash += FURNITURE[cMap.grid[self.pos[0] + 1][self.pos[1]] - 1].cost
+									cMap.grid[self.pos[0] + 1][self.pos[1]] = 0
+									self.sfxChannel.play(self.sfx["click"])
+						
+					if event.button == 1:
+						self.cash += 1000
 		
 		if int(self.animTimer / self.animLength) >= self.animFrames:
 			self.animTimer = 0
@@ -332,7 +397,7 @@ class Game:
 	surface = pygame.surface.Surface(SURFACE_SIZE)
 	window  = pygame.display.set_mode(WINDOW_SIZE)
 	active  = True
-	muted   = False
+	muted   = True
 
 	pygame.display.set_caption("sfgame")
 
@@ -342,14 +407,18 @@ class Game:
 
 		self.cMap = Map((8, 8), 48)
 		self.guy = Guy(self.cMap)
-		self.bg = pygame.transform.scale(pygame.image.load("./assets/floor_1.png"), (self.cMap.tileSize, self.cMap.tileSize))
+		self.bg = pygame.transform.scale(pygame.image.load("./assets/sprites/room/floor.png"), (self.cMap.tileSize, self.cMap.tileSize))
 		self.ui = UI()
+
+		for j in range(pygame.joystick.get_count()):
+			joysticks.append(pygame.joystick.Joystick(j))
+			joysticks[-1].init()
 
 		pygame.mixer.music.load("./assets/music/nc9.mp3")
 		pygame.mixer.music.set_volume(0.5)
 		pygame.mixer.music.play(-1)
 
-		#pygame.mixer.music.pause()
+		pygame.mixer.music.pause()
 	
 	def __del__(self):
 		pygame.quit()
@@ -366,6 +435,18 @@ class Game:
 					self.active = False
 				
 				if event.key == pygame.K_m:
+					if self.muted:
+						pygame.mixer.music.unpause()
+					else:
+						pygame.mixer.music.pause()
+					
+					self.muted = not self.muted
+			
+			if event.type == pygame.JOYBUTTONDOWN:
+				if event.button == 7:
+					self.active = False
+				
+				if event.button == 6:
 					if self.muted:
 						pygame.mixer.music.unpause()
 					else:
@@ -403,3 +484,6 @@ class Game:
 game = Game()
 game.main()
 del game
+
+# TODO:
+# - fix the joystick functions
