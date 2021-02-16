@@ -3,10 +3,11 @@
 this is the bunker game
 
 TODO:
-- ~~item menu~~
-- sfx
-- inventory + cash
-- point system
+- ~~sfx~~
+- inventory ~~+ cash~~
+- ~~point system~~
+- more furniture
+- value/profit
 
 GAME ASSETS:
 - player: https://gamekrazzy.itch.io/8-direction-top-down-character

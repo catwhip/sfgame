@@ -39,9 +39,14 @@ class ItemMenu:
 		self.margin = int(cMap.tileSize / 8)
 		self.font = pygame.font.Font("./assets/geopixel.ttf", 10)
 		self.text = []
+
+		self.sfx = {
+			"click": pygame.mixer.Sound("./assets/sfx/click.mp3"),
+		}
+		self.sfxChannel = pygame.mixer.find_channel()
 	
 	def update(self, eventList):
-		self.text = [self.font.render(f.name, False, (191, 191, 191)) for f in FURNITURE]
+		self.text = [self.font.render(f"{f.name} (${f.cost})", False, (191, 191, 191)) for f in FURNITURE]
 
 		for event in eventList:
 			if event.type == pygame.KEYDOWN:
@@ -50,12 +55,14 @@ class ItemMenu:
 				
 				if event.key == pygame.K_UP:
 					self.select -= 1
+					self.sfxChannel.play(self.sfx["click"])
 
 					if self.select < 0:
 						self.select = len(self.text) - 1
 
 				if event.key == pygame.K_DOWN:
 					self.select += 1
+					self.sfxChannel.play(self.sfx["click"])
 
 					if self.select > len(self.text) - 1:
 						self.select = 0
@@ -63,7 +70,7 @@ class ItemMenu:
 				if event.key == pygame.K_x:
 					return self.select
 		
-		self.text[self.select] = self.font.render(FURNITURE[self.select].name, False, (255, 255, 255))
+		self.text[self.select] = self.font.render(f"{FURNITURE[self.select].name} (${FURNITURE[self.select].cost})", False, (255, 255, 255))
 		return -1
 
 	def draw(self, surface):
