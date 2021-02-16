@@ -321,8 +321,8 @@ class Game:
 		self.bg = pygame.transform.scale(pygame.image.load("./assets/floor_1.png"), (self.cMap.tileSize, self.cMap.tileSize))
 		self.ui = UI()
 
-		pygame.mixer.music.load("./assets/music/zero.mp3")
-		pygame.mixer.music.set_volume(1)
+		pygame.mixer.music.load("./assets/music/nc9.mp3")
+		pygame.mixer.music.set_volume(0.5)
 		pygame.mixer.music.play(-1)
 
 		#pygame.mixer.music.pause()
