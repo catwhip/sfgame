@@ -3,11 +3,10 @@
 this is the bunker game
 
 TODO:
-- inventory and furniture info
-- more furniture
-- value/profit
-- controller icons
-- accessibility options
+- more furniture + info for furniture
+- fix that terrible control system
+- endgame (value/profit)
+- settings + accessibility options
 ---
 GAME ASSETS:
 - player: https://gamekrazzy.itch.io/8-direction-top-down-character
