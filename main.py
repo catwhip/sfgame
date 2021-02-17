@@ -198,6 +198,7 @@ class Guy:
 			if not response == None:
 				# add furniture: add existing to inventory if exists, add to grid, take cash (if necessary), and play sfx
 				if ((self.cash >= FURNITURE[response].cost) or (response in self.inventory and self.inventory[response] > 0)) and self._checkBorder(cMap):
+					print(response)
 					self._inventoryAdd(cMap)
 					cMap.grid[self.dExp[self.direction]()[0]][self.dExp[self.direction]()[1]] = self.menu.select
 
@@ -216,10 +217,9 @@ class Guy:
 			for event in eventList:
 				if event.type == pygame.KEYDOWN or event.type == pygame.JOYBUTTONDOWN:
 					if controlEqual(event, pygame.K_c, 0):
-						# open menu (c or a)
 						self.menu.visible = not self.menu.visible
 						self.sfxChannel.play(self.sfx["click"])
-					
+
 					if controlEqual(event, pygame.K_x, 2):
 						# remove furniture: checks for item in front of player, and adds it to inventory (x or x)
 						if self._checkBorder(cMap):

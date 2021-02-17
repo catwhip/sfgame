@@ -62,6 +62,9 @@ class ItemMenu:
 					if self.select in guy.inventory and guy.inventory[self.select] > 0:
 						guy.inventory[self.select] -= 1
 						guy.cash += FURNITURE[self.select].cost
+				
+				if controlEqual(event, pygame.K_c, 1):
+					self.visible = not self.visible
 			
 			if event.type == pygame.KEYDOWN:
 				# movement (this has to be in a different place to the buttons because joyhatmotion needs to be used, not joybuttondown)
@@ -78,13 +81,6 @@ class ItemMenu:
 
 					if self.select > len(self.text) - 1:
 						self.select = 0
-				
-				if event.key == pygame.K_c:
-					self.visible = not self.visible
-			
-			if event.type == pygame.JOYBUTTONDOWN:
-				if event.button == 1:
-					self.visible = not self.visible
 			
 			if event.type == pygame.JOYHATMOTION:
 				# movement
@@ -109,6 +105,8 @@ class ItemMenu:
 		self.iText = None
 		if self.select in guy.inventory and guy.inventory[self.select] > 0:
 			self.iText = self.font.render(str(guy.inventory[self.select]), False, (255, 255, 255))
+		
+		return None
 
 	def draw(self, surface):
 		pygame.draw.rect(surface, (19, 126, 166), pygame.Rect(self.margin, self.margin, self.size[0] - (self.margin * 2), self.size[1] - (self.margin * 2)), 0, self.margin)
