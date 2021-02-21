@@ -65,25 +65,40 @@ class ItemMenu:
 				
 				if controlEqual(event, pygame.K_c, 1):
 					self.visible = not self.visible
-			
-			if event.type == pygame.KEYDOWN:
-				# movement (this has to be in a different place to the buttons because joyhatmotion needs to be used, not joybuttondown)
-				if event.key == pygame.K_UP:
+				
+				# menu movement for pc and ps4 (xbox uses joyhatmotion instead)
+				if controlEqual(event, pygame.K_UP, 11):
 					self.select -= 1
 					self.sfxChannel.play(self.sfx["click"])
 
 					if self.select < 0:
 						self.select = len(self.text) - 1
-
-				if event.key == pygame.K_DOWN:
+				
+				if controlEqual(event, pygame.K_DOWN, 12):
 					self.select += 1
 					self.sfxChannel.play(self.sfx["click"])
 
 					if self.select > len(self.text) - 1:
 						self.select = 0
 			
+			# if event.type == pygame.KEYDOWN:
+			# 	# movement (this has to be in a different place to the buttons because joyhatmotion needs to be used, not joybuttondown)
+			# 	if event.key == pygame.K_UP:
+			# 		self.select -= 1
+			# 		self.sfxChannel.play(self.sfx["click"])
+
+			# 		if self.select < 0:
+			# 			self.select = len(self.text) - 1
+
+			# 	if event.key == pygame.K_DOWN:
+			# 		self.select += 1
+			# 		self.sfxChannel.play(self.sfx["click"])
+
+			# 		if self.select > len(self.text) - 1:
+			# 			self.select = 0
+			
 			if event.type == pygame.JOYHATMOTION:
-				# movement
+				# movement (xbox)
 				if event.value[1] == -1:
 					self.select -= 1
 					self.sfxChannel.play(self.sfx["click"])

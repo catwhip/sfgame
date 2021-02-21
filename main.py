@@ -252,22 +252,27 @@ class Game:
 	def __init__(self):
 		pygame.init()
 
-		self.cMap = Map((8, 8), 48)
-		self.guy = Guy(self.cMap)
-		self.bg = pygame.transform.scale(pygame.image.load("./assets/sprites/room/floor.png"), (self.cMap.tileSize, self.cMap.tileSize))
-		self.ui = UI()
-
 		for j in range(pygame.joystick.get_count()):
 			# controllers
 			joysticks.append(pygame.joystick.Joystick(j))
 			joysticks[-1].init()
+		
+			if joysticks[-1].get_numhats() > 0:
+				joystickType = "xbox"
+			else:
+				joystickType = "ps"
+
+		self.cMap = Map((8, 8), 48)
+		self.guy = Guy(self.cMap)
+		self.bg = pygame.transform.scale(pygame.image.load("./assets/sprites/room/floor.png"), (self.cMap.tileSize, self.cMap.tileSize))
+		self.ui = UI(joystickType)
 
 		# music
 		pygame.mixer.music.load("./assets/music/nc9.mp3")
 		pygame.mixer.music.set_volume(0.5)
 		pygame.mixer.music.play(-1)
 
-		#pygame.mixer.music.pause()
+		pygame.mixer.music.pause()
 	
 	def __del__(self):
 		pygame.quit()
